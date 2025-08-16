@@ -19,15 +19,8 @@
       overflow: hidden;
     }
 
-    h1 {
-      margin: 10px 0;
-      font-size: 28px;
-    }
-
-    #score {
-      margin-bottom: 10px;
-      font-size: 22px;
-    }
+    h1 { margin: 10px 0; font-size: 28px; }
+    #score { margin-bottom: 10px; font-size: 22px; }
 
     #game-container {
       flex-grow: 1;
@@ -54,9 +47,7 @@
       color: white;
       transition: 0.3s;
     }
-    #startBtn:hover, #restartBtn:hover {
-      background: #00e676;
-    }
+    #startBtn:hover, #restartBtn:hover { background: #00e676; }
 
     #gameOver {
       position: absolute;
@@ -93,9 +84,7 @@
       user-select: none;
       touch-action: manipulation;
     }
-    .btn:active {
-      background: rgba(255, 255, 255, 0.35);
-    }
+    .btn:active { background: rgba(255, 255, 255, 0.35); }
 
     @media (max-width: 600px) {
       #controls {
@@ -103,9 +92,7 @@
         grid-template-rows: 80px 80px 80px;
         gap: 10px;
       }
-      .btn {
-        font-size: 28px;
-      }
+      .btn { font-size: 28px; }
     }
   </style>
 </head>
@@ -146,7 +133,7 @@
     let box = 20;
     let snake, direction, food, score, game;
 
-    // Food (mouse) icon
+    // Food icon (mouse)
     let foodImg = new Image();
     foodImg.src = "https://cdn-icons-png.flaticon.com/512/1998/1998610.png";
 
@@ -167,7 +154,8 @@
       gameOverEl.style.display = "none";
       startBtn.style.display = "none";
       if (game) clearInterval(game);
-      game = setInterval(draw, 120);
+      // slower speed (180ms instead of 120ms)
+      game = setInterval(draw, 180);
     }
 
     function endGame() {
@@ -182,18 +170,23 @@
       };
     }
 
+    // Keyboard controls
     document.addEventListener("keydown", event => {
-      if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-      else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-      else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-      else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+      changeDirection(event.key);
     });
 
     // On-screen controls
-    document.getElementById("up").onclick = () => { if(direction !== "DOWN") direction="UP"; }
-    document.getElementById("down").onclick = () => { if(direction !== "UP") direction="DOWN"; }
-    document.getElementById("left").onclick = () => { if(direction !== "RIGHT") direction="LEFT"; }
-    document.getElementById("right").onclick = () => { if(direction !== "LEFT") direction="RIGHT"; }
+    document.getElementById("up").addEventListener("click", () => changeDirection("ArrowUp"));
+    document.getElementById("down").addEventListener("click", () => changeDirection("ArrowDown"));
+    document.getElementById("left").addEventListener("click", () => changeDirection("ArrowLeft"));
+    document.getElementById("right").addEventListener("click", () => changeDirection("ArrowRight"));
+
+    function changeDirection(key) {
+      if (key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+      else if (key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+    }
 
     function draw() {
       ctx.fillStyle = "#111";
@@ -229,7 +222,7 @@
       // new head
       let newHead = { x: snakeX, y: snakeY };
 
-      // Game over
+      // Game over rules
       if (
         snakeX < 0 || snakeY < 0 ||
         snakeX >= canvas.width || snakeY >= canvas.height ||
