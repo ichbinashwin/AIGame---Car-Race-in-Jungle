@@ -1,2 +1,2 @@
-# AIGame---Car-Race-in-Jungle
-This is a simple Car racing game.
+# AIGame
+This is a simple game.
