@@ -2,25 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Snack Game</title>
+  <title>Snack Game 2.0</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       width: 100%;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(120deg, #2b5876, #4e4376);
+      font-family: 'Segoe UI', Arial, sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      color: white;
+      background: #121212;
+      color: #fff;
       overflow: hidden;
     }
 
-    h1 { margin: 10px 0; font-size: 28px; }
-    #score { margin-bottom: 10px; font-size: 22px; }
+    h1 {
+      margin: 10px 0;
+      font-size: 28px;
+      text-align: center;
+      color: #ffeb3b;
+    }
+    #score {
+      margin-bottom: 10px;
+      font-size: 20px;
+      text-align: center;
+    }
 
     #game-container {
       flex-grow: 1;
@@ -32,13 +39,15 @@
     }
 
     canvas {
-      background: #111 url("https://cdn.pixabay.com/photo/2017/06/20/22/48/leaves-2423636_1280.jpg") no-repeat center/cover;
-      border: 4px solid white;
-      border-radius: 8px;
+      border: 4px solid #fff;
+      border-radius: 12px;
+      display: block;
+      max-width: 100%;
+      height: auto;
     }
 
     #startBtn, #restartBtn {
-      padding: 12px 24px;
+      padding: 12px 28px;
       font-size: 20px;
       border: none;
       border-radius: 8px;
@@ -54,50 +63,55 @@
       top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       padding: 25px 40px;
       border-radius: 12px;
       text-align: center;
       display: none;
+      color: #fff;
     }
 
-    /* On-screen controller */
+    /* Modern Remote Control */
     #controls {
       display: grid;
-      grid-template-columns: 100px 100px 100px;
-      grid-template-rows: 100px 100px 100px;
-      gap: 15px;
+      grid-template-columns: 80px 80px 80px;
+      grid-template-rows: 80px 80px 80px;
+      gap: 12px;
       justify-content: center;
       align-items: center;
-      margin-bottom: 20px;
+      margin: 20px auto;
     }
     .btn {
       display: flex;
       justify-content: center;
       align-items: center;
-      background: rgba(255, 255, 255, 0.15);
-      border: 3px solid #fff;
-      border-radius: 16px;
-      font-size: 36px;
-      color: white;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      font-size: 30px;
+      color: #fff;
       cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      transition: transform 0.15s, background 0.3s;
       user-select: none;
       touch-action: manipulation;
     }
-    .btn:active { background: rgba(255, 255, 255, 0.35); }
+    .btn:active {
+      transform: scale(0.9);
+      background: rgba(255,255,255,0.4);
+    }
 
     @media (max-width: 600px) {
       #controls {
-        grid-template-columns: 80px 80px 80px;
-        grid-template-rows: 80px 80px 80px;
+        grid-template-columns: 70px 70px 70px;
+        grid-template-rows: 70px 70px 70px;
         gap: 10px;
       }
-      .btn { font-size: 28px; }
+      .btn { font-size: 26px; }
     }
   </style>
 </head>
 <body>
-  <h1>🐍 Snack Game</h1>
+  <h1>🐍 Snack Game 2.0</h1>
   <div id="score">Score: 0</div>
   <button id="startBtn">Start Game</button>
 
@@ -112,13 +126,13 @@
   <!-- On-screen controller -->
   <div id="controls">
     <div></div>
-    <div class="btn" id="up">⬆</div>
+    <div class="btn" id="up" aria-label="Move Up">⬆</div>
     <div></div>
-    <div class="btn" id="left">⬅</div>
+    <div class="btn" id="left" aria-label="Move Left">⬅</div>
     <div></div>
-    <div class="btn" id="right">➡</div>
+    <div class="btn" id="right" aria-label="Move Right">➡</div>
     <div></div>
-    <div class="btn" id="down">⬇</div>
+    <div class="btn" id="down" aria-label="Move Down">⬇</div>
     <div></div>
   </div>
 
@@ -132,10 +146,21 @@
 
     let box = 20;
     let snake, direction, food, score, game;
+    let dancing = false;
 
-    // Food icon (mouse)
+    // Food (mouse icon)
     let foodImg = new Image();
     foodImg.src = "https://cdn-icons-png.flaticon.com/512/1998/1998610.png";
+
+    // Different backgrounds for each user
+    const bgs = [
+      "https://cdn.pixabay.com/photo/2017/06/20/22/48/leaves-2423636_1280.jpg",
+      "https://cdn.pixabay.com/photo/2016/10/19/14/54/forest-1759111_1280.jpg",
+      "https://cdn.pixabay.com/photo/2017/02/01/22/02/jungle-2030561_1280.jpg",
+      "https://cdn.pixabay.com/photo/2019/04/10/09/07/forest-4114456_1280.jpg"
+    ];
+    let bgImg = new Image();
+    bgImg.src = bgs[Math.floor(Math.random() * bgs.length)];
 
     function resizeCanvas() {
       const size = Math.min(window.innerWidth, window.innerHeight - 250);
@@ -146,16 +171,20 @@
     resizeCanvas();
 
     function startGame() {
-      snake = [{ x: 9 * box, y: 10 * box }];
-      direction = null;
+      snake = [
+        { x: 9 * box, y: 10 * box },
+        { x: 8 * box, y: 10 * box },
+        { x: 7 * box, y: 10 * box }
+      ]; // initial 3 blocks
+      direction = "RIGHT";
       score = 0;
       food = randomFood();
+      dancing = false;
       scoreEl.textContent = "Score: " + score;
       gameOverEl.style.display = "none";
       startBtn.style.display = "none";
       if (game) clearInterval(game);
-      // slower speed (180ms instead of 120ms)
-      game = setInterval(draw, 180);
+      game = setInterval(draw, 180); // slower pace
     }
 
     function endGame() {
@@ -170,12 +199,8 @@
       };
     }
 
-    // Keyboard controls
-    document.addEventListener("keydown", event => {
-      changeDirection(event.key);
-    });
-
-    // On-screen controls
+    // Direction controls
+    document.addEventListener("keydown", e => changeDirection(e.key));
     document.getElementById("up").addEventListener("click", () => changeDirection("ArrowUp"));
     document.getElementById("down").addEventListener("click", () => changeDirection("ArrowDown"));
     document.getElementById("left").addEventListener("click", () => changeDirection("ArrowLeft"));
@@ -189,17 +214,26 @@
     }
 
     function draw() {
-      ctx.fillStyle = "#111";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
+      // Snake draw
       for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "#4CAF50" : "#8BC34A";
+        ctx.fillStyle = i === 0 ? "#ffeb3b" : "#4caf50";
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
-        ctx.strokeStyle = "#222";
+        ctx.strokeStyle = "#111";
         ctx.strokeRect(snake[i].x, snake[i].y, box, box);
       }
 
       ctx.drawImage(foodImg, food.x, food.y, box, box);
+
+      if (dancing) {
+        // simple dance: wiggle snake body
+        for (let i = 0; i < snake.length; i++) {
+          ctx.fillStyle = i % 2 === 0 ? "#e91e63" : "#ffeb3b";
+          ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        }
+        return; // skip moving while dancing
+      }
 
       // old head
       let snakeX = snake[0].x;
@@ -215,6 +249,12 @@
         score++;
         scoreEl.textContent = "Score: " + score;
         food = randomFood();
+
+        // 🎉 Celebrate every 10 points
+        if (score % 10 === 0) {
+          dancing = true;
+          setTimeout(() => { dancing = false; }, 2000);
+        }
       } else {
         snake.pop();
       }
@@ -222,7 +262,7 @@
       // new head
       let newHead = { x: snakeX, y: snakeY };
 
-      // Game over rules
+      // Game over
       if (
         snakeX < 0 || snakeY < 0 ||
         snakeX >= canvas.width || snakeY >= canvas.height ||
@@ -236,7 +276,7 @@
     }
 
     function collision(head, array) {
-      return array.some(segment => head.x === segment.x && head.y === segment.y);
+      return array.some(seg => head.x === seg.x && head.y === seg.y);
     }
 
     startBtn.addEventListener("click", startGame);
