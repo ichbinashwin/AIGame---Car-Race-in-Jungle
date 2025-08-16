@@ -2,48 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Snack Game 2.0</title>
+  <title>Snack Game 2.1</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       width: 100%;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
       background: #121212;
       color: #fff;
+      font-family: Arial, sans-serif;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    h1 {
-      margin: 10px 0;
-      font-size: 28px;
-      text-align: center;
-      color: #ffeb3b;
-    }
-    #score {
-      margin-bottom: 10px;
-      font-size: 20px;
-      text-align: center;
-    }
+    h1 { text-align: center; margin: 10px 0; color: #ffeb3b; }
+    #score { text-align: center; font-size: 20px; margin-bottom: 8px; }
 
     #game-container {
       flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100%;
       position: relative;
     }
-
     canvas {
       border: 4px solid #fff;
-      border-radius: 12px;
+      border-radius: 10px;
       display: block;
-      max-width: 100%;
-      height: auto;
     }
 
     #startBtn, #restartBtn {
@@ -51,34 +38,30 @@
       font-size: 20px;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
       background: #00c853;
       color: white;
-      transition: 0.3s;
+      cursor: pointer;
     }
-    #startBtn:hover, #restartBtn:hover { background: #00e676; }
 
     #gameOver {
       position: absolute;
       top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.9);
-      padding: 25px 40px;
+      background: rgba(0,0,0,0.85);
+      padding: 20px 40px;
       border-radius: 12px;
       text-align: center;
       display: none;
-      color: #fff;
     }
 
-    /* Modern Remote Control */
+    /* Remote Controls */
     #controls {
       display: grid;
       grid-template-columns: 80px 80px 80px;
       grid-template-rows: 80px 80px 80px;
       gap: 12px;
       justify-content: center;
-      align-items: center;
       margin: 20px auto;
     }
     .btn {
@@ -87,31 +70,16 @@
       align-items: center;
       background: rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      font-size: 30px;
+      font-size: 28px;
       color: #fff;
       cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-      transition: transform 0.15s, background 0.3s;
       user-select: none;
-      touch-action: manipulation;
     }
-    .btn:active {
-      transform: scale(0.9);
-      background: rgba(255,255,255,0.4);
-    }
-
-    @media (max-width: 600px) {
-      #controls {
-        grid-template-columns: 70px 70px 70px;
-        grid-template-rows: 70px 70px 70px;
-        gap: 10px;
-      }
-      .btn { font-size: 26px; }
-    }
+    .btn:active { background: rgba(255,255,255,0.5); }
   </style>
 </head>
 <body>
-  <h1>🐍 Snack Game 2.0</h1>
+  <h1>🐍 Snack Game 2.1</h1>
   <div id="score">Score: 0</div>
   <button id="startBtn">Start Game</button>
 
@@ -123,16 +91,15 @@
     </div>
   </div>
 
-  <!-- On-screen controller -->
   <div id="controls">
     <div></div>
-    <div class="btn" id="up" aria-label="Move Up">⬆</div>
+    <div class="btn" id="up">⬆</div>
     <div></div>
-    <div class="btn" id="left" aria-label="Move Left">⬅</div>
+    <div class="btn" id="left">⬅</div>
     <div></div>
-    <div class="btn" id="right" aria-label="Move Right">➡</div>
+    <div class="btn" id="right">➡</div>
     <div></div>
-    <div class="btn" id="down" aria-label="Move Down">⬇</div>
+    <div class="btn" id="down">⬇</div>
     <div></div>
   </div>
 
@@ -140,19 +107,16 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const scoreEl = document.getElementById("score");
-    const gameOverEl = document.getElementById("gameOver");
     const startBtn = document.getElementById("startBtn");
     const restartBtn = document.getElementById("restartBtn");
+    const gameOverEl = document.getElementById("gameOver");
 
     let box = 20;
-    let snake, direction, food, score, game;
-    let dancing = false;
+    let snake, direction, food, score, game, dancing;
 
-    // Food (mouse icon)
     let foodImg = new Image();
     foodImg.src = "https://cdn-icons-png.flaticon.com/512/1998/1998610.png";
 
-    // Different backgrounds for each user
     const bgs = [
       "https://cdn.pixabay.com/photo/2017/06/20/22/48/leaves-2423636_1280.jpg",
       "https://cdn.pixabay.com/photo/2016/10/19/14/54/forest-1759111_1280.jpg",
@@ -163,7 +127,7 @@
     bgImg.src = bgs[Math.floor(Math.random() * bgs.length)];
 
     function resizeCanvas() {
-      const size = Math.min(window.innerWidth, window.innerHeight - 250);
+      const size = Math.min(window.innerWidth - 20, window.innerHeight - 250);
       canvas.width = Math.floor(size / box) * box;
       canvas.height = Math.floor(size / box) * box;
     }
@@ -172,19 +136,19 @@
 
     function startGame() {
       snake = [
-        { x: 9 * box, y: 10 * box },
-        { x: 8 * box, y: 10 * box },
-        { x: 7 * box, y: 10 * box }
-      ]; // initial 3 blocks
+        {x: 9*box, y: 10*box},
+        {x: 8*box, y: 10*box},
+        {x: 7*box, y: 10*box}
+      ];
       direction = "RIGHT";
       score = 0;
-      food = randomFood();
       dancing = false;
-      scoreEl.textContent = "Score: " + score;
-      gameOverEl.style.display = "none";
+      food = randomFood();
+      scoreEl.textContent = "Score: 0";
       startBtn.style.display = "none";
+      gameOverEl.style.display = "none";
       if (game) clearInterval(game);
-      game = setInterval(draw, 180); // slower pace
+      game = setInterval(draw, 180);
     }
 
     function endGame() {
@@ -194,17 +158,17 @@
 
     function randomFood() {
       return {
-        x: Math.floor(Math.random() * (canvas.width / box)) * box,
-        y: Math.floor(Math.random() * (canvas.height / box)) * box
+        x: Math.floor(Math.random() * (canvas.width/box)) * box,
+        y: Math.floor(Math.random() * (canvas.height/box)) * box
       };
     }
 
-    // Direction controls
+    // Direction changes
     document.addEventListener("keydown", e => changeDirection(e.key));
-    document.getElementById("up").addEventListener("click", () => changeDirection("ArrowUp"));
-    document.getElementById("down").addEventListener("click", () => changeDirection("ArrowDown"));
-    document.getElementById("left").addEventListener("click", () => changeDirection("ArrowLeft"));
-    document.getElementById("right").addEventListener("click", () => changeDirection("ArrowRight"));
+    document.getElementById("up").onclick = () => changeDirection("ArrowUp");
+    document.getElementById("down").onclick = () => changeDirection("ArrowDown");
+    document.getElementById("left").onclick = () => changeDirection("ArrowLeft");
+    document.getElementById("right").onclick = () => changeDirection("ArrowRight");
 
     function changeDirection(key) {
       if (key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
@@ -216,58 +180,46 @@
     function draw() {
       ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
+      // Draw food
+      ctx.drawImage(foodImg, food.x, food.y, box, box);
+
       // Snake draw
       for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "#ffeb3b" : "#4caf50";
+        if (dancing) {
+          ctx.fillStyle = i % 2 === 0 ? "#ff5722" : "#ffeb3b";
+        } else {
+          ctx.fillStyle = i === 0 ? "#ffeb3b" : "#4caf50";
+        }
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
         ctx.strokeStyle = "#111";
         ctx.strokeRect(snake[i].x, snake[i].y, box, box);
       }
 
-      ctx.drawImage(foodImg, food.x, food.y, box, box);
-
-      if (dancing) {
-        // simple dance: wiggle snake body
-        for (let i = 0; i < snake.length; i++) {
-          ctx.fillStyle = i % 2 === 0 ? "#e91e63" : "#ffeb3b";
-          ctx.fillRect(snake[i].x, snake[i].y, box, box);
-        }
-        return; // skip moving while dancing
-      }
-
-      // old head
+      // Move snake
       let snakeX = snake[0].x;
       let snakeY = snake[0].y;
-
       if (direction === "LEFT") snakeX -= box;
       if (direction === "UP") snakeY -= box;
       if (direction === "RIGHT") snakeX += box;
       if (direction === "DOWN") snakeY += box;
 
-      // Check if eats food
       if (snakeX === food.x && snakeY === food.y) {
         score++;
         scoreEl.textContent = "Score: " + score;
         food = randomFood();
-
-        // 🎉 Celebrate every 10 points
         if (score % 10 === 0) {
           dancing = true;
-          setTimeout(() => { dancing = false; }, 2000);
+          setTimeout(() => dancing = false, 2000);
         }
       } else {
         snake.pop();
       }
 
-      // new head
-      let newHead = { x: snakeX, y: snakeY };
+      let newHead = {x: snakeX, y: snakeY};
 
-      // Game over
-      if (
-        snakeX < 0 || snakeY < 0 ||
-        snakeX >= canvas.width || snakeY >= canvas.height ||
-        collision(newHead, snake)
-      ) {
+      if (snakeX < 0 || snakeY < 0 ||
+          snakeX >= canvas.width || snakeY >= canvas.height ||
+          collision(newHead, snake)) {
         endGame();
         return;
       }
@@ -275,12 +227,12 @@
       snake.unshift(newHead);
     }
 
-    function collision(head, array) {
-      return array.some(seg => head.x === seg.x && head.y === seg.y);
+    function collision(head, arr) {
+      return arr.some(seg => head.x === seg.x && head.y === seg.y);
     }
 
-    startBtn.addEventListener("click", startGame);
-    restartBtn.addEventListener("click", startGame);
+    startBtn.onclick = startGame;
+    restartBtn.onclick = startGame;
   </script>
 </body>
 </html>
