@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jungle Car Driving</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #2e8b57; /* jungle green */
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: url('https://cdn.pixabay.com/photo/2017/01/10/19/05/jungle-1962884_1280.jpg') no-repeat center/cover;
+    }
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div>🚗 Distance: <span id="distance">0</span> m</div>
+    <div>💰 Coins: <span id="coins">0</span></div>
+  </div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let carImg = new Image();
+    carImg.src = "https://cdn-icons-png.flaticon.com/512/743/743922.png"; // free car icon
+
+    let coinImg = new Image();
+    coinImg.src = "https://cdn-icons-png.flaticon.com/512/138/138281.png"; // coin icon
+
+    let car = { x: 100, y: 300, width: 50, height: 50, speedY: 0 };
+    let coins = [];
+    let distance = 0;
+    let coinCount = 0;
+    let gravity = 0.5;
+    let jumpPower = -10;
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space" && car.y >= 300) {
+        car.speedY = jumpPower;
+      }
+    });
+
+    function spawnCoin() {
+      coins.push({ x: 800, y: 250 + Math.random() * 100, width: 30, height: 30 });
+    }
+    setInterval(spawnCoin, 2000);
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw car
+      car.speedY += gravity;
+      car.y += car.speedY;
+      if (car.y > 300) { car.y = 300; car.speedY = 0; }
+      ctx.drawImage(carImg, car.x, car.y, car.width, car.height);
+
+      // Move & draw coins
+      for (let i = coins.length - 1; i >= 0; i--) {
+        let c = coins[i];
+        c.x -= 5;
+        ctx.drawImage(coinImg, c.x, c.y, c.width, c.height);
+
+        // Collision check
+        if (
+          car.x < c.x + c.width &&
+          car.x + car.width > c.x &&
+          car.y < c.y + c.height &&
+          car.y + car.height > c.y
+        ) {
+          coinCount++;
+          coins.splice(i, 1);
+        }
+        if (c.x + c.width < 0) {
+          coins.splice(i, 1);
+        }
+      }
+
+      // Distance update
+      distance += 0.1;
+      document.getElementById("distance").textContent = Math.floor(distance);
+      document.getElementById("coins").textContent = coinCount;
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
